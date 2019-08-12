@@ -10,12 +10,13 @@ const bodyParser = express.json()
 
 bookmarksRouter
     .route('/bookmarks')
-    .get((req, res) => {
+    .get((req, res, next) => {
         const knexInstance = req.app.get('db')
         BookmarksService.getAllBookmarks(knexInstance)
             .then(allBookmarks => {
                 res.json(allBookmarks)
             })
+            .catch(next)
     })
     .post(bodyParser, (req, res) => {
         const { title, url, rating, description } = req.body;
@@ -68,6 +69,7 @@ bookmarksRouter
         BookmarksService.getById(knexInstance, req.params.id)
             .then(bookmark => {
                 if(!bookmark) {
+                    logger.error(`Bookmark with id ${req.params.id} not found`)
                     res.status(404).json({
                         error: {message: 'Bookmark does not exist'}
                     })
