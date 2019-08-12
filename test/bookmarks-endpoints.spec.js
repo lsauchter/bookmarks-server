@@ -47,4 +47,33 @@ describe('Bookmarks endpoints', () => {
         })
     })
 
+    describe('GET /bookmarks/:id', () => {
+        context('Given no bookmarks', () => {
+            it('responds 404', () => {
+                const bookmarkID = 12345
+                return supertest(app)
+                    .get(`/bookmarks/${bookmarkID}`)
+                    .expect(404, {error: {message: 'Bookmark does not exist'}})
+            })
+        })
+
+        context('Given bookmarks', () => {
+            const testBookmarks = makeBookmarksArray()
+
+            beforeEach('insert bookmarks', () => {
+                return db
+                    .into('bookmarks')
+                    .insert(testBookmarks)
+            })
+
+            it('GET /bookmarks/:id responds 200 and with bookmark', () => {
+                const bookmarkID = 2
+                const expectedBookmark = testBookmarks[bookmarkID - 1]
+                return supertest(app)
+                    .get(`/bookmarks/${bookmarkID}`)
+                    .expect(200, expectedBookmark)
+            })
+        })
+    })
+
 })
