@@ -3,6 +3,7 @@ const uuid = require('uuid/v4')
 const logger = require('./logger')
 const { isWebUri } = require('valid-url')
 const { bookmarks } = require('./store')
+const BookmarksService = require('./bookmarks-service')
 
 const bookmarksRouter = express.Router()
 const bodyParser = express.json()
@@ -10,7 +11,11 @@ const bodyParser = express.json()
 bookmarksRouter
     .route('/bookmarks')
     .get((req, res) => {
-        res.json(bookmarks);
+        const knexInstance = req.app.get('db')
+        BookmarksService.getAllBookmarks(knexInstance)
+            .then(allBookmarks => {
+                res.json(allBookmarks)
+            })
     })
     .post(bodyParser, (req, res) => {
         const { title, url, rating, description } = req.body;
