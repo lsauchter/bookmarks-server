@@ -39,8 +39,9 @@ bookmarksRouter
             }
         }
 
-        if(!Number.isInteger(rating) || rating < 0 || rating > 5) {
-            logger.error(`Invalid rating of ${rating} supplied`);
+        const ratingNum = parseInt(rating)
+        if(!Number.isInteger(ratingNum) || ratingNum < 0 || ratingNum > 5) {
+            logger.error(`Invalid rating of ${ratingNum} supplied`);
             return res.status(400).send('Rating must be a number between 0 and 5')
         }
         if(!isWebUri(url)) {
@@ -67,7 +68,7 @@ bookmarksRouter
             .then(bookmark => {
                 if(!bookmark) {
                     logger.error(`Bookmark with id ${req.params.id} not found`)
-                    res.status(404).json({
+                    return res.status(404).json({
                         error: {message: 'Bookmark does not exist'}
                     })
                 }
@@ -76,7 +77,7 @@ bookmarksRouter
             })
     })
     .get((req, res) => {
-        res.json(sanitizeBookmark(bookmark))
+        res.json(sanitizeBookmark(res.bookmark))
     })
     .delete((req, res, next) => {
         BookmarksService.deleteBookmark(req.app.get('db'), req.params.id)
