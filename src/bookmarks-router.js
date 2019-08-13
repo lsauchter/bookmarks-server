@@ -82,6 +82,7 @@ bookmarksRouter
     .delete((req, res, next) => {
         BookmarksService.deleteBookmark(req.app.get('db'), req.params.id)
             .then(() => {
+                logger.info(`Bookmark with id ${req.params.id} deleted`)
                 res.status(204).end()
             })
             .catch(next)
