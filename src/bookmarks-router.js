@@ -21,11 +21,11 @@ bookmarksRouter
         const knexInstance = req.app.get('db')
         BookmarksService.getAllBookmarks(knexInstance)
             .then(allBookmarks => {
-                res.json(allBookmarks)
+                res.json(allBookmarks.map(sanitizeBookmark))
             })
             .catch(next)
     })
-    .post(bodyParser, (req, res) => {
+    .post(bodyParser, (req, res, next) => {
         const { title, url, rating, description } = req.body;
         const newBookmark = {title, url, rating, description}
         const knexInstance = req.app.get('db')
@@ -56,11 +56,12 @@ bookmarksRouter
                     .location(`/bookmarks/${bookmark.id}`)
                     .json(sanitizeBookmark(bookmark))
             })
+            .catch(next)
     })
 
 bookmarksRouter
     .route('/bookmarks/:id')
-    .get((req, res) => {
+    .all((req, res, next) => {
         const knexInstance = req.app.get('db')
         BookmarksService.getById(knexInstance, req.params.id)
             .then(bookmark => {
@@ -70,21 +71,19 @@ bookmarksRouter
                         error: {message: 'Bookmark does not exist'}
                     })
                 }
-                res.json(bookmark)
+                res.bookmark = bookmark
+                next()
             })
     })
-    .delete((req, res) => {
-        const { id } = req.params;
-        const bookmarkIndex = bookmarks.findIndex(bk => bk.id == id);
-
-        if (bookmarkIndex === -1) {
-            logger.error(`Bookmark with ${id} not found`);
-            return res.status(404).send('Bookmark not found');
-        }
-
-        bookmarks.splice(bookmarkIndex, 1);
-        logger.info(`Bookmark with id ${id} deleted`);
-        res.status(204).end();
+    .get((req, res) => {
+        res.json(sanitizeBookmark(bookmark))
+    })
+    .delete((req, res, next) => {
+        BookmarksService.deleteBookmark(req.app.get('db'), req.params.id)
+            .then(() => {
+                res.status(204).end()
+            })
+            .catch(next)
     })
 
 module.exports = bookmarksRouter
