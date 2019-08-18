@@ -99,8 +99,19 @@ bookmarksRouter
             })
         }
 
+        const ratingNum = parseInt(rating)
+        if(!Number.isInteger(ratingNum) || ratingNum < 0 || ratingNum > 5) {
+            logger.error(`Invalid rating of ${ratingNum} supplied`);
+            return res.status(400).send('Rating must be a number between 0 and 5')
+        }
+        if(!isWebUri(url)) {
+            logger.error(`Invalid url ${url} supplied`);
+            return res.status(400).send('Must be a valid url')
+        }
+
         BookmarksService.updateBookmark(req.app.get('db'), req.params.id, bookmarkUpdate)
             .then(() => {
+                logger.info(`Bookmark with id ${req.body.id} updated`)
                 res.status(204).end()
             })
             .catch(next)
