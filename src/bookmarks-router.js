@@ -2,6 +2,7 @@ const express = require('express')
 const logger = require('./logger')
 const { isWebUri } = require('valid-url')
 const xss = require('xss')
+const path = require('path')
 const BookmarksService = require('./bookmarks-service')
 
 const bookmarksRouter = express.Router()
@@ -16,7 +17,7 @@ const sanitizeBookmark = bookmark => ({
 })
 
 bookmarksRouter
-    .route('/bookmarks')
+    .route('/')
     .get((req, res, next) => {
         const knexInstance = req.app.get('db')
         BookmarksService.getAllBookmarks(knexInstance)
@@ -54,14 +55,14 @@ bookmarksRouter
                 logger.info(`Bookmark with ID ${bookmark.id} created`)
                 res
                     .status(201)
-                    .location(`/bookmarks/${bookmark.id}`)
+                    .location(path.posix.join(req.originalUrl, `/${bookmark.id}`))
                     .json(sanitizeBookmark(bookmark))
             })
             .catch(next)
     })
 
 bookmarksRouter
-    .route('/bookmarks/:id')
+    .route('/:id')
     .all((req, res, next) => {
         const knexInstance = req.app.get('db')
         BookmarksService.getById(knexInstance, req.params.id)
